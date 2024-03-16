@@ -1,0 +1,38 @@
+Da aktiviras virtual environment iz terminala:
+Odes u direktorijum gde se nalazi projekat, pa onda
+
+  source venv/bin/activate
+  
+Posle toga, medjutim, moras da koristis python iz tog virtual environment-a,
+tako da program pokreces sa:
+
+  venv/bin/python cema_train_simple_graphs.py
+  
+Na kraju, kad zavrsis sa virtual environment-om, 
+ili kazes
+
+  deactivate
+  
+ili jednostavno zatvoris prozor terminala.
+
+Da ti se kompjuter ne uspava dok traje treniranje:
+
+  caffeinate -disu
+
+TensorBoard za prikupljanje rezultata startujes pomocu
+
+  /Users/ds/miniforge3/bin/tensorboard --logdir runs
+
+ili gde je vec instaliran tensorboard na lokalnom kompjuteru,
+pri cemu je runs poddirektorijum trenutnog direktorijuma sa "cema for graphs" projektom.
+Web interfejsu za TensorBoard pristupas iz web browsera pomocu localhost:6006.
+
+Za rad sa jar fajlovima:
+
+  jar tf imejarfajla
+
+daje spisak svih klasa zapakovanih u imejarfajla, dok
+
+  javap -classpath imejarfajla graph6java.Graph
+
+daje spisak svih metoda implementiranih u klasi graph6java.Graph unutar imejarfajla.
