@@ -329,11 +329,6 @@ def train(compute_reward,
         if verbose:
             print(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}')
 
-            with open(out_file_name, 'a') as out_file:
-                out_file.write(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}\n')
-                out_file.write(f'Best performing matrix:\n')
-                out_file.write(np.array2string(max_A) + '\n\n')
-
         # this data always gets reported to runs/event file for tensorboard
         writer.add_scalar('rew_max', max_reward, gen)
         writer.add_scalar('rew_surv', srv_reward, gen)
@@ -342,6 +337,13 @@ def train(compute_reward,
 
         # show the best graph found every output_best_graph_rate generations
         if gen % output_best_graph_rate == 0:
+            # adjacency matrix to the external file
+            with open(out_file_name, 'a') as out_file:
+                out_file.write(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}\n')
+                out_file.write(f'Best performing matrix:\n')
+                out_file.write(np.array2string(max_A) + '\n\n')
+
+            # graph drawing to tensorboard
             if gen>0:
                 plt.close('all')
 

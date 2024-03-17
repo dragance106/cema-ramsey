@@ -132,7 +132,7 @@ if __name__=="__main__":
                  n=13,
                  colors=2,
                  act_rndness_max=0.1,
-                 output_best_graph_rate=100,
+                 output_best_graph_rate=200,
                  num_generations=100000)
 
 # r, A = train(compute_reward=R_K5_K5e,
