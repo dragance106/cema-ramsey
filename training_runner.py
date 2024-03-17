@@ -56,6 +56,7 @@ INF = 1000000                   # a very large number used by compute_reward to 
 # A LOWER BOUND FOR EACH OF THE FOLLOWING RAMSEY NUMBERS:
 
 # TWO-COLOR RAMSEY NUMBERS
+
 # - R(K5, K5-e) on 30-32 vertices
 def R_K5_K5e(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
@@ -65,9 +66,23 @@ def R_K5_K5e(n, colors, A):
 
 # - R(K4, K6-e) on 30-31 vertices
 # - R(K4-e, K7) on 28 vertices
+
 # - R(K2,4, K3,5) on 19 vertices
+def R_K24_K35(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK24(0)
+    b = g.numK35(1)
+    return -a-b
+
 # - R(K2,5, K3,5) on less than 23 vertices
+
 # - R(W5, W7) on 13-15 vertices
+def R_W5_W7(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numW5(0)
+    b = g.numW7(1)
+    return -a-b
+
 # - R(W4, W8) on 22-25 vertices
 # - R(B4, B5) on less than 19 vertices
 # - R(B3, B6) on less than 19 vertices
@@ -75,8 +90,9 @@ def R_K5_K5e(n, colors, A):
 # - R(W5, K6) on 33-35 vertices
 # - R(W6, K6) on 34-39 vertices
 # - R(K2,2,2, K2,2,2) on 30 vertices
-#
+
 # MULTICOLOR RAMSEY NUMBERS
+
 # - R(4x C6) on 18-20 vertices,
 # - R(C4, 3x C6) on 18-20 vertices,
 # - R(2x C4, 2x C6) on 18-20 vertices,
@@ -103,8 +119,8 @@ def R_K5_K5e(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    r, A = train(compute_reward=R_K5_K5e,
-                 n=30,
+    r, A = train(compute_reward=R_W5_W7,
+                 n=13,
                  colors=2,
                  num_generations=100000)
 

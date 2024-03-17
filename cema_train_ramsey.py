@@ -247,8 +247,8 @@ def train(compute_reward,
                 cutoff_percent = (100+cutoff_percent)/2
 
         # just make sure that you stay within the limits if you came to the situation
-        # that there are more than batch_size/5 pairs with almost the same maximum reward
-        ind_learn = ind_learn[:batch_size//5]
+        # that there are more than batch_size/2 pairs with almost the same maximum reward
+        ind_learn = ind_learn[:batch_size//2]
 
         # observations and actions must be reshaped,
         # so that the first dimension is the number of pairs from which to learn,
@@ -332,9 +332,10 @@ def train(compute_reward,
             ind_maximum = np.argmax(rew_full)
             max_A = adj_from_obs(n, obs_full[ind_maximum, autlen, 0:autlen])
 
-            # a workaround to ship the adjacency matrix to the summary writer
-            max_A_dict = {f'A{i}{j}': max_A[i,j] for i in range(n) for j in range(n)}
-            writer.add_scalars('max_A', max_A_dict, gen)
+            # a workaround to ship the adjacency matrix to the summary writer,
+            # but tensorboard complains about "too many open files"!
+            # max_A_dict = {f'A{i}{j}': max_A[i,j] for i in range(n) for j in range(n)}
+            # writer.add_scalars('max_A', max_A_dict, gen)
 
             gnx = nx.from_numpy_array(max_A)
             plt.figure(num=1, figsize=(4,4), dpi=300)
