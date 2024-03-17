@@ -84,9 +84,18 @@ def R_W5_W7(n, colors, A):
     return -a-b
 
 # - R(W4, W8) on 22-25 vertices
+
 # - R(B4, B5) on less than 19 vertices
+def R_B4_B5(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numB4(0)
+    b = g.numB5(1)
+    return -a-b
+
 # - R(B3, B6) on less than 19 vertices
+
 # - R(B2, B8) on 19-21 vertices
+
 # - R(W5, K6) on 33-35 vertices
 # - R(W6, K6) on 34-39 vertices
 # - R(K2,2,2, K2,2,2) on 30 vertices
@@ -122,6 +131,8 @@ if __name__=="__main__":
     r, A = train(compute_reward=R_W5_W7,
                  n=13,
                  colors=2,
+                 act_rndness_max=0.1,
+                 output_best_graph_rate=100,
                  num_generations=100000)
 
 # r, A = train(compute_reward=R_K5_K5e,

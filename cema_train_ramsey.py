@@ -213,6 +213,13 @@ def train(compute_reward,
     # for transferring results to tensorboard
     writer = SummaryWriter()
 
+    #############################################################################################
+    # Reporting textual data on rewards and best performing graphs/matrices to an external file #
+    # TensorboardX complains when a matrix is sent to it :(                                     #
+    #############################################################################################
+    tic = time.localtime()
+    out_file_name = f'report-{compute_reward.__name__}-{tic.tm_year}-{tic.tm_mon}-{tic.tm_mday}-{tic.tm_hour}-{tic.tm_min}-{tic.tm_sec}.txt'
+
     #####################
     # THE TRAINING LOOP #
     #####################
@@ -316,8 +323,17 @@ def train(compute_reward,
         toc = time.perf_counter()
 
         # if verbose is True, report some data to the console
+        ind_maximum = np.argmax(rew_full)
+        max_A = adj_from_obs(n, obs_full[ind_maximum, autlen, 0:autlen])
+
         if verbose:
             print(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}')
+
+            with open(out_file_name, 'a') as out_file:
+                out_file.write(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}\n')
+                out_file.write(f'Best performing matrix:\n')
+                out_file.write(np.array2string(max_A) + '\n\n')
+
         # this data always gets reported to runs/event file for tensorboard
         writer.add_scalar('rew_max', max_reward, gen)
         writer.add_scalar('rew_surv', srv_reward, gen)
@@ -328,14 +344,6 @@ def train(compute_reward,
         if gen % output_best_graph_rate == 0:
             if gen>0:
                 plt.close('all')
-
-            ind_maximum = np.argmax(rew_full)
-            max_A = adj_from_obs(n, obs_full[ind_maximum, autlen, 0:autlen])
-
-            # a workaround to ship the adjacency matrix to the summary writer,
-            # but tensorboard complains about "too many open files"!
-            # max_A_dict = {f'A{i}{j}': max_A[i,j] for i in range(n) for j in range(n)}
-            # writer.add_scalars('max_A', max_A_dict, gen)
 
             gnx = nx.from_numpy_array(max_A)
             plt.figure(num=1, figsize=(4,4), dpi=300)
