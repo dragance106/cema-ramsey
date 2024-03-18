@@ -65,7 +65,13 @@ def R_K5_K5e(n, colors, A):
     return -a-b             # we want to see zero here!
 
 # - R(K4, K6-e) on 30-31 vertices
+
 # - R(K4-e, K7) on 28 vertices
+def R_K4e_K7(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK4e(0)
+    b = g.numK7(1)
+    return -a-b
 
 # - R(K2,4, K3,5) on 19 vertices
 def R_K24_K35(n, colors, A):
@@ -96,6 +102,8 @@ def R_B4_B5(n, colors, A):
     return -a-b
 
 # - R(B3, B6) on less than 19 vertices
+#   best: reward 0 on 16 vertices after 500 gens
+#         reward -1 on 17 vertices after 50 thousand gens
 def R_B3_B6(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB3(0)
@@ -151,9 +159,10 @@ def R_C5_C6_C6(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    r, A = train(compute_reward=R_B3_B6,
-                 n=17,
+    r, A = train(compute_reward=R_K4e_K7,
+                 n=28,
                  colors=2,
+                 neurons=[100,28,8],
                  act_rndness_max=0.1,
                  output_best_graph_rate=200,
                  num_generations=100000)
