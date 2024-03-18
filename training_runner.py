@@ -77,6 +77,8 @@ def R_K24_K35(n, colors, A):
 # - R(K2,5, K3,5) on less than 23 vertices
 
 # - R(W5, W7) on 13-15 vertices
+#   best: reward 0 on 13 vertices after 1200 gens
+#         reward -11 on 14 vertices after 38,000 gens
 def R_W5_W7(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numW5(0)
@@ -86,6 +88,7 @@ def R_W5_W7(n, colors, A):
 # - R(W4, W8) on 22-25 vertices
 
 # - R(B4, B5) on less than 19 vertices
+#   best: reward 0 on 17 vertices after 4200 gens
 def R_B4_B5(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB4(0)
@@ -93,6 +96,11 @@ def R_B4_B5(n, colors, A):
     return -a-b
 
 # - R(B3, B6) on less than 19 vertices
+def R_B3_B6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numB3(0)
+    b = g.numB6(1)
+    return -a-b
 
 # - R(B2, B8) on 19-21 vertices
 
@@ -106,11 +114,26 @@ def R_B4_B5(n, colors, A):
 # - R(C4, 3x C6) on 18-20 vertices,
 # - R(2x C4, 2x C6) on 18-20 vertices,
 # - R(2x C4, K4) on 20 vertices,
-# - R(C3, 2x C6) on 15-18 vertices,
-# - R(C5, 2x C6) on 15-17 vertices,
+
+# - R(C3, 2x C6) on 15-18 vertices
+def R_C3_C6_C6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC3(0)
+    b = g.numC6(1)
+    c = g.numC6(2)
+    return -a-b-c
+
+# + R(C5, 2x C6) on 15-17 vertices
+#   best: -140 on 15 vertices after 68,000 gens
+def R_C5_C6_C6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC5(0)
+    b = g.numC6(1)
+    c = g.numC6(2)
+    return -a-b-c
+
 # - R(K3, 2x K4-e) on 21 vertices,
 # - R(K3,3, K3,4) on 20 vertices,
-# - R(W5, W7) on 14-16 vertices,
 # - R(C3, 3x C4) on 24-26 vertices,
 # - R(5x C4) on 27-28 vertices,
 # - R(C3, C4, K4) on 27-31 vertices,
@@ -128,8 +151,8 @@ def R_B4_B5(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    r, A = train(compute_reward=R_W5_W7,
-                 n=13,
+    r, A = train(compute_reward=R_B3_B6,
+                 n=17,
                  colors=2,
                  act_rndness_max=0.1,
                  output_best_graph_rate=200,
