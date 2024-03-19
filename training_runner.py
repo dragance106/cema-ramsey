@@ -21,40 +21,6 @@ import numpy as np
 import math
 INF = 1000000                   # a very large number used by compute_reward to signify unwanted graphs
 
-
-# kcoloring.jar has implemented counters for:
-# graph   to get the count of copies in color c, call:
-# K3:     g.numK3(c)
-# K4      g.numK4(c)
-# K4-e    g.numK4e(c)
-# K5      g.numK5(c)
-# K5-e    g.numK5e(c)
-# K6      g.numK6(c)
-# K6-e    g.numK6e(c)
-# K2,4    g.numK24(c)
-# K2,5    g.numK25(c)
-# K3,3    g.numK33(c)
-# K3,4    g.numK34(c)
-# K3,5    g.numK35(c)
-# K2,2,2  g.numK222(c)
-# W4      g.numW4(c)
-# W5      g.numW5(c)
-# W6      g.numW6(c)
-# W7      g.numW7(c)
-# W8      g.numW8(c)
-# B2      g.numB2(c)
-# B3      g.numB3(c)
-# B4      g.numB4(c)
-# B5      g.numB5(c)
-# B8      g.numB8(c)
-# C3      g.numC3(c)
-# C4      g.numC4(c)
-# C5      g.numC5(c)
-# C6      g.numC6(c)
-
-# USE CEMA TO TRY TO CONSTRUCT A GRAPH THAT WILL ESTABLISH
-# A LOWER BOUND FOR EACH OF THE FOLLOWING RAMSEY NUMBERS:
-
 # TWO-COLOR RAMSEY NUMBERS
 
 # - R(K5, K5-e) on 30-32 vertices
@@ -73,17 +39,33 @@ def R_K4e_K7(n, colors, A):
     b = g.numK7(1)
     return -a-b
 
-# - R(K2,4, K3,5) on 19 vertices
+# + R(K2,4, K3,5) on 19 vertices
+#   best: reward -32 after 6,000 gens
 def R_K24_K35(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numK24(0)
     b = g.numK35(1)
     return -a-b
 
-# - R(K2,5, K3,5) on less than 23 vertices
+# + R(K2,5, K3,5) on less than 23 vertices
+#   best: *** reward 0 on 18 vertices after 600 gens ***
+#         !!! reward -1 on 19 vertices after 12,000 gens !!!
+#         reward -16 on 20 vertices after 16,000 gens
+def R_K25_K35(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK25(0)
+    b = g.numK35(1)
+    return -a-b
 
-# - R(W5, W7) on 13-15 vertices
-#   best: reward 0 on 13 vertices after 1200 gens
+# - R(K3,3, K3,4) on 19 vertices
+def R_K33_K34(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK33(0)
+    b = g.numK34(1)
+    return -a-b
+
+# + R(W5, W7) on 13-15 vertices
+#   best: *** reward 0 on 13 vertices after 1,200 gens ***
 #         reward -11 on 14 vertices after 38,000 gens
 def R_W5_W7(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
@@ -92,9 +74,15 @@ def R_W5_W7(n, colors, A):
     return -a-b
 
 # - R(W4, W8) on 22-25 vertices
+#   best: reward -202 on 22 vertices after 34,000 gens
+def R_W4_W8(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numW4(0)
+    b = g.numW8(1)
+    return -a-b
 
-# - R(B4, B5) on less than 19 vertices
-#   best: reward 0 on 17 vertices after 4200 gens
+# + R(B4, B5) on less than 19 vertices
+#   best: *** reward 0 on 17 vertices after 4200 gens ***
 def R_B4_B5(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB4(0)
@@ -102,8 +90,8 @@ def R_B4_B5(n, colors, A):
     return -a-b
 
 # - R(B3, B6) on less than 19 vertices
-#   best: reward 0 on 16 vertices after 500 gens
-#         reward -1 on 17 vertices after 50 thousand gens
+#   best: *** reward 0 on 16 vertices after 500 gens ***
+#         !!! reward -1 on 17 vertices after 50 thousand gens !!!
 def R_B3_B6(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB3(0)
@@ -111,6 +99,13 @@ def R_B3_B6(n, colors, A):
     return -a-b
 
 # - R(B2, B8) on 19-21 vertices
+#   best: reward -10 on 19 vertices after 45,000 gens
+#         (jump from -13 to -10 after 23,000 gens!)
+def R_B2_B8(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numB2(0)
+    b = g.numB8(1)
+    return -a-b
 
 # - R(W5, K6) on 33-35 vertices
 # - R(W6, K6) on 34-39 vertices
@@ -118,9 +113,28 @@ def R_B3_B6(n, colors, A):
 
 # MULTICOLOR RAMSEY NUMBERS
 
-# - R(4x C6) on 18-20 vertices,
-# - R(C4, 3x C6) on 18-20 vertices,
+# - R(4x C6) on 18-20 vertices
+#   best: reward -1198 on 18 vertices after 8,500 gens
+def R_C6_C6_C6_C6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC6(0)
+    b = g.numC6(1)
+    c = g.numC6(2)
+    d = g.numC6(3)
+    return -a-b-c-d
+
+# - R(C4, 3x C6) on 18-20 vertices
+#   best: reward -175 on 18 vertices after 11,500 gens
+def R_C4_C6_C6_C6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC4(0)
+    b = g.numC6(1)
+    c = g.numC6(2)
+    d = g.numC6(3)
+    return -a-b-c-d
+
 # - R(2x C4, 2x C6) on 18-20 vertices,
+
 # - R(2x C4, K4) on 20 vertices,
 
 # - R(C3, 2x C6) on 15-18 vertices
@@ -141,12 +155,17 @@ def R_C5_C6_C6(n, colors, A):
     return -a-b-c
 
 # - R(K3, 2x K4-e) on 21 vertices,
-# - R(K3,3, K3,4) on 20 vertices,
+
 # - R(C3, 3x C4) on 24-26 vertices,
+
 # - R(5x C4) on 27-28 vertices,
+
 # - R(C3, C4, K4) on 27-31 vertices,
+
 # - R(K3, K4, K4-e) on 31-39 vertices,
+
 # - R(C4, K4, K4-e) on 29-35 vertices,
+
 # - R(4x K3) on 51-61 vertices?!
 #
 # Reference: S.P.Radziszowski, Small Ramsey Numbers, EJC DS#1,
@@ -159,10 +178,10 @@ def R_C5_C6_C6(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    r, A = train(compute_reward=R_K4e_K7,
-                 n=28,
+    r, A = train(compute_reward=R_K33_K34,
+                 n=19,
                  colors=2,
-                 neurons=[100,28,8],
+                 neurons=[64,16],
                  act_rndness_max=0.1,
                  output_best_graph_rate=200,
                  num_generations=100000)
