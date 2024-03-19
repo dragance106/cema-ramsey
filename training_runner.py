@@ -48,7 +48,7 @@ def R_K24_K35(n, colors, A):
     return -a-b
 
 # + R(K2,5, K3,5) on less than 23 vertices
-#   best: *** reward 0 on 18 vertices after 600 gens ***
+#   best: *** reward 0 on 18 vertices after 400-600 gens ***
 #         !!! reward -1 on 19 vertices after 12,000 gens !!!
 #         reward -16 on 20 vertices after 16,000 gens
 def R_K25_K35(n, colors, A):
@@ -164,6 +164,12 @@ def R_C5_C6_C6(n, colors, A):
     return -a-b-c
 
 # - R(K3, 2x K4-e) on 21 vertices,
+def R_K3_K4e_K4e(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK3(0)
+    b = g.numK4e(1)
+    c = g.numK4e(2)
+    return -a-b-c
 
 # - R(C3, 3x C4) on 24-26 vertices,
 
