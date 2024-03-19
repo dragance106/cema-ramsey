@@ -58,6 +58,7 @@ def R_K25_K35(n, colors, A):
     return -a-b
 
 # - R(K3,3, K3,4) on 19 vertices
+#   best: reward -75 after 11,500 gens
 def R_K33_K34(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numK33(0)
@@ -178,8 +179,18 @@ def R_C5_C6_C6(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    r, A = train(compute_reward=R_K33_K34,
-                 n=19,
+    # for ADAM try only:
+    # K25_K35 on 19
+    # B4_B5 on 18
+    # B3_B6 on 17
+
+    # otherwise, try only:
+    # C3_C6_C6 on 15
+    # C5_C6_C6 on 15
+    # K3_K4e_K4e on 21
+
+    r, A = train(compute_reward=R_B4_B5,
+                 n=18,
                  colors=2,
                  neurons=[64,16],
                  act_rndness_max=0.1,
