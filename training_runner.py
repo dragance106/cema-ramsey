@@ -57,6 +57,13 @@ def R_K25_K35(n, colors, A):
     b = g.numK35(1)
     return -a-b
 
+def R_K25_K35_vert(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = np.array(g.numK25_vert(0))
+    b = np.array(g.numK35_vert(1))
+    rew = np.sum(1.0 / (1.0 + a)) + np.sum(1.0 / (1.0+b))
+    return -rew
+
 # - R(K3,3, K3,4) on 19 vertices
 #   best: reward -75 after 11,500 gens
 def R_K33_K34(n, colors, A):
@@ -84,6 +91,7 @@ def R_W4_W8(n, colors, A):
 
 # + R(B4, B5) on less than 19 vertices
 #   best: *** reward 0 on 17 vertices after 4200 gens ***
+#         reward -9 on 18 vertices after 19,800 gens
 def R_B4_B5(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB4(0)
@@ -189,10 +197,19 @@ if __name__=="__main__":
     # C5_C6_C6 on 15
     # K3_K4e_K4e on 21
 
-    r, A = train(compute_reward=R_B4_B5,
+    # try the alternative continuous reward:
+    # sum_over_all_subgraphs_Gi
+    #   sum_over_all_vertices_v
+    #     1 / (1 + #copies of Gi on color i containing vertex v)
+    # just copy the counting methods in kcoloring
+    # and explicitly set a=v instead of having a for loop over a
+
+    # how to prevent that the maximum reward does not decrease?!
+
+    r, A = train(compute_reward=R_K25_K35,
                  n=18,
                  colors=2,
-                 neurons=[64,16],
+                 # neurons=[64,16],
                  act_rndness_max=0.1,
                  output_best_graph_rate=200,
                  num_generations=100000)
