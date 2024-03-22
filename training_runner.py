@@ -156,7 +156,8 @@ def R_C4_C4_C6_C6(n, colors, A):
     d = g.numC6(3)
     return -a-b-c-d
 
-# - R(2x C4, K4) on 20 vertices,
+# - R(2x C4, K4) on 20 vertices
+#   best: reward -17 after 5,600 gens
 def R_C4_C4_K4(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numC4(0)
@@ -255,9 +256,9 @@ if __name__=="__main__":
 
     # how to prevent that the maximum reward does not decrease?!
 
-    r, A = train(compute_reward=R_C4_C4_K4,
-                 n=20,
-                 colors=3,
+    r, A = train(compute_reward=R_C3_C4_C4_C4,
+                 n=24,
+                 colors=4,
                  batch_size=400,
                  percent_learn=96,
                  percent_survive=99,
