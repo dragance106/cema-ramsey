@@ -33,6 +33,7 @@ def R_K5_K5e(n, colors, A):
 # - R(K4, K6-e) on 30-31 vertices
 
 # - R(K4-e, K7) on 28 vertices
+#   best: -206 after 5,400 gens
 def R_K4e_K7(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numK4e(0)
@@ -48,8 +49,7 @@ def R_K24_K35(n, colors, A):
     return -a-b
 
 # + R(K2,5, K3,5) on less than 23 vertices
-#   best: *** reward 0 on 18 vertices after 400-600 gens ***
-#         !!! reward -1 on 19 vertices after 12,000 gens !!!
+#   best: *** reward 0 on 19 vertices after 9,600 gens ***
 #         reward -16 on 20 vertices after 16,000 gens
 def R_K25_K35(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
@@ -61,8 +61,7 @@ def R_K25_K35_vert(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = np.array(g.numK25_vert(0))
     b = np.array(g.numK35_vert(1))
-    rew = np.sum(1.0 / (1.0 + a)) + np.sum(1.0 / (1.0+b))
-    return -rew
+    return np.sum(np.exp(-a)) + np.sum(np.exp(-b)) - 2*n
 
 # - R(K3,3, K3,4) on 19 vertices
 #   best: reward -75 after 11,500 gens
@@ -91,7 +90,7 @@ def R_W4_W8(n, colors, A):
 
 # + R(B4, B5) on less than 19 vertices
 #   best: *** reward 0 on 17 vertices after 4200 gens ***
-#         reward -9 on 18 vertices after 19,800 gens
+#         reward -8 on 18 vertices after 14,800 gens
 def R_B4_B5(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB4(0)
@@ -100,7 +99,7 @@ def R_B4_B5(n, colors, A):
 
 # - R(B3, B6) on less than 19 vertices
 #   best: *** reward 0 on 16 vertices after 500 gens ***
-#         !!! reward -1 on 17 vertices after 50 thousand gens !!!
+#         !!! on 17 vertices reward stays stubbornly at -1, no matter what you do !!!
 def R_B3_B6(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numB3(0)
@@ -117,8 +116,13 @@ def R_B2_B8(n, colors, A):
     return -a-b
 
 # - R(W5, K6) on 33-35 vertices
+#   best: reward -833 on 33 vertices after 3,300 gens
+
 # - R(W6, K6) on 34-39 vertices
+#   best: reward -2019 on 34 vertices after 3,200 gens
+
 # - R(K2,2,2, K2,2,2) on 30 vertices
+#   best: reward -1170 after 4,500 gens
 
 # MULTICOLOR RAMSEY NUMBERS
 
@@ -143,10 +147,25 @@ def R_C4_C6_C6_C6(n, colors, A):
     return -a-b-c-d
 
 # - R(2x C4, 2x C6) on 18-20 vertices,
+#   best: reward -40 on 18 vertices after 8,900 gens
+def R_C4_C4_C6_C6(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC4(0)
+    b = g.numC4(1)
+    c = g.numC6(2)
+    d = g.numC6(3)
+    return -a-b-c-d
 
 # - R(2x C4, K4) on 20 vertices,
+def R_C4_C4_K4(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC4(0)
+    b = g.numC4(1)
+    c = g.numK4(2)
+    return -a-b-c
 
 # - R(C3, 2x C6) on 15-18 vertices
+#   best: reward -70 on 15 vertices after 22,000 gens
 def R_C3_C6_C6(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numC3(0)
@@ -155,7 +174,7 @@ def R_C3_C6_C6(n, colors, A):
     return -a-b-c
 
 # + R(C5, 2x C6) on 15-17 vertices
-#   best: -140 on 15 vertices after 68,000 gens
+#   best: -70 on 15 vertices after 11,000 gens
 def R_C5_C6_C6(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numC5(0)
@@ -164,6 +183,7 @@ def R_C5_C6_C6(n, colors, A):
     return -a-b-c
 
 # - R(K3, 2x K4-e) on 21 vertices,
+#   best: reward -115 after 7,300 gens
 def R_K3_K4e_K4e(n, colors, A):
     g = Kcoloring(JInt[:,:](A))
     a = g.numK3(0)
@@ -172,17 +192,57 @@ def R_K3_K4e_K4e(n, colors, A):
     return -a-b-c
 
 # - R(C3, 3x C4) on 24-26 vertices,
+def R_C3_C4_C4_C4(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC3(0)
+    b = g.numC4(1)
+    c = g.numC4(2)
+    d = g.numC4(3)
+    return -a-b-c-d
 
 # - R(5x C4) on 27-28 vertices,
+def R_C4_C4_C4_C4_C4(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC4(0)
+    b = g.numC4(1)
+    c = g.numC4(2)
+    d = g.numC4(3)
+    e = g.numC4(4)
+    return -a-b-c-d-e
 
 # - R(C3, C4, K4) on 27-31 vertices,
+def R_C3_C4_K4(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC3(0)
+    b = g.numC4(1)
+    c = g.numK4(2)
+    return -a-b-c
 
 # - R(K3, K4, K4-e) on 31-39 vertices,
+def R_K3_K4_K4e(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK3(0)
+    b = g.numK4(1)
+    c = g.numK4e(2)
+    return -a-b-c
 
 # - R(C4, K4, K4-e) on 29-35 vertices,
+def R_C4_K4_K4e(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numC4(0)
+    b = g.numK4(1)
+    c = g.numK4e(2)
+    return -a-b-c
 
 # - R(4x K3) on 51-61 vertices?!
-#
+def R_K3_K3_K3_K3(n, colors, A):
+    g = Kcoloring(JInt[:,:](A))
+    a = g.numK3(0)
+    b = g.numK3(1)
+    c = g.numK3(2)
+    d = g.numK3(3)
+    return -a-b-c-d
+
 # Reference: S.P.Radziszowski, Small Ramsey Numbers, EJC DS#1,
 # https://www.combinatorics.org/ojs/index.php/eljc/article/view/DS1/pdf
 
@@ -193,44 +253,17 @@ def R_K3_K4e_K4e(n, colors, A):
 if __name__=="__main__":
     from cema_train_ramsey import train
 
-    # for ADAM try only:
-    # K25_K35 on 19
-    # B4_B5 on 18
-    # B3_B6 on 17
-
-    # otherwise, try only:
-    # C3_C6_C6 on 15
-    # C5_C6_C6 on 15
-    # K3_K4e_K4e on 21
-
-    # try the alternative continuous reward:
-    # sum_over_all_subgraphs_Gi
-    #   sum_over_all_vertices_v
-    #     1 / (1 + #copies of Gi on color i containing vertex v)
-    # just copy the counting methods in kcoloring
-    # and explicitly set a=v instead of having a for loop over a
-
     # how to prevent that the maximum reward does not decrease?!
 
-    r, A = train(compute_reward=R_K25_K35,
-                 n=18,
-                 colors=2,
-                 # neurons=[64,16],
-                 act_rndness_max=0.1,
+    r, A = train(compute_reward=R_C4_C4_K4,
+                 n=20,
+                 colors=3,
+                 batch_size=400,
+                 percent_learn=96,
+                 percent_survive=99,
+                 act_rndness_max=0.15,
                  output_best_graph_rate=200,
                  num_generations=100000)
-
-# r, A = train(compute_reward=R_K5_K5e,
-#              n=30,
-#              colors=2,
-#              batch_size=200,
-#              num_generations=10000,
-#              percent_learn=92,
-#              percent_survive=94,
-#              learning_rate=0.0015,
-#              neurons=[192,16],
-#              act_rndness_init=0.0005,
-#              act_rndness_max=0.0015)
 
 # when jpype is no longer needed...
 jpype.shutdownJVM()
