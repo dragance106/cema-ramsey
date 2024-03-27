@@ -253,16 +253,21 @@ def R_K3_K3_K3_K3(n, colors, A):
 ############################################################
 if __name__=="__main__":
     from cema_train_ramsey import train
+            # how does learning go with a single step indicator instead of one-hot encoding?
 
     # how to prevent that the maximum reward does not decrease?!
 
-    r, A = train(compute_reward=R_C3_C4_C4_C4,
-                 n=24,
-                 colors=4,
-                 batch_size=400,
-                 percent_learn=96,
+    r, A = train(compute_reward=R_B3_B6,
+                 n=17,
+                 colors=2,
+                 batch_size=500,
+                 # neurons=[100,50,25,12,6],
+                 percent_learn=97.5,
                  percent_survive=99,
-                 act_rndness_max=0.15,
+                 act_rndness_init=0.01,
+                 act_rndness_wait=20,
+                 act_rndness_mult=1.25,
+                 act_rndness_max=1,
                  output_best_graph_rate=200,
                  num_generations=100000)
 

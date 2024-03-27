@@ -18,6 +18,9 @@ def adj_from_obs(n, observation):
     W = np.zeros([n, n], dtype=np.int8)
     # copy the first half of the last observation into the upper triangular part of Ws
     W[np.triu_indices(n, k=1)] = observation
+    # alternatively:
+    # copy the first half of the last observation into the lower triangular part of Ws
+    # W[np.tril_indices(n, k=-1)] = observation
     # create the adjacency matrix from W
     return np.maximum(W, W.T)
 
