@@ -5,7 +5,7 @@ import multiprocessing as mp
 INF = 1000000                   # a very large number used by compute_reward to signify unwanted graphs
 
 
-def two_walk_projection(n, A, B):
+def two_walk_projection(n, A):
     """
     Computes the projection of A**2.j onto the span of {j, A.j},
     where j is the all-one vector.
