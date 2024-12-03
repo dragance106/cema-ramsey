@@ -1,4 +1,7 @@
 # for training the neural network
+import string
+import random
+
 import torch
 import torch.nn as nn
 # for dealing with observations/actions/reward arrays
@@ -10,6 +13,10 @@ import networkx as nx
 import matplotlib.pyplot as plt
 # for reporting elapsed time
 import time
+import multiprocessing as mp
+
+# needed for reporting certificates of having two main eigenvalues only
+from training_runner import two_walk_projection, two_walk_reward
 
 
 def adj_from_obs(n, observation):
@@ -38,7 +45,8 @@ def reset(obs_new, autlen):
     # for each graph, in the first observation, put 1 at the first position of the second half of the observation
     obs_new[:, 0, autlen] = 1
 
-def step(position, next_actions, obs_new, act_new, colors, batch_size, autlen, rng, act_rndness):
+
+def step(position, next_actions, obs_new, act_new, batch_size, autlen, rng, act_rndness):
     """Performs the appropriate action for all batch_size graphs in the new generation
        and modify the next observation accordingly
     """
@@ -48,7 +56,7 @@ def step(position, next_actions, obs_new, act_new, colors, batch_size, autlen, r
     # one of the most practical and powerful methods for solving the exploration/exploitation problem, according to Lapan
     # "at most" because rng.integers() may contain repeated indices
     rnd_size = round(act_rndness*batch_size)
-    next_actions[rng.integers(0, batch_size, size=rnd_size)] = rng.choice(colors, size=rnd_size)
+    next_actions[rng.integers(0, batch_size, size=rnd_size)] = rng.choice(2, size=rnd_size)
 
     # store the resulting actions
     act_new[:, position] = next_actions
@@ -67,7 +75,8 @@ def step(position, next_actions, obs_new, act_new, colors, batch_size, autlen, r
     if (position<autlen-1):
         obs_new[:, position+1, autlen+position+1] = 1
 
-def new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, act_rndness, n, colors, compute_reward):
+
+def new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, act_rndness, n, compute_reward):
     """Creates a new generation of batch_size graphs from the currently trained neural network,
        computing the final rewards afterwards
     """
@@ -82,15 +91,26 @@ def new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, ac
         next_probs = probs_t.data.numpy()
 
         # how to write this in a more numpy-onic way - could not find a better alternative...
-        next_actions = np.array([rng.choice(colors, p=probs) for probs in next_probs])
+        next_actions = np.array([rng.choice(2, p=probs) for probs in next_probs])
 
         # perform the actions
-        step(position, next_actions, obs_new, act_new, colors, batch_size, autlen, rng, act_rndness)
+        step(position, next_actions, obs_new, act_new, batch_size, autlen, rng, act_rndness)
 
     # when the graphs are fully constructed,
-    # compute the final rewards from the first halves of last observations (at position autlen)
+    # compute the final rewards from the first halves of last observations (at position autlen),
+    # for graph in range(batch_size):
+    #     rew_new[graph] = compute_reward(n, adj_from_obs(n, obs_new[graph, autlen, 0:autlen]))
+
+    # all done in parallel, since we no longer use graph6java here
+    params = generate_params(batch_size, n, obs_new, autlen)
+    with mp.Pool(max(mp.cpu_count(), 1)) as pool:
+        rewards = pool.map(compute_reward, params)
+    np.copyto(rew_new, np.array(rewards))
+
+
+def generate_params(batch_size, n, obs_new, autlen):
     for graph in range(batch_size):
-        rew_new[graph] = compute_reward(n, colors, adj_from_obs(n, obs_new[graph, autlen, 0:autlen]))
+        yield n, adj_from_obs(n, obs_new[graph, autlen, 0:autlen])
 
 
 ############################
@@ -98,7 +118,6 @@ def new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, ac
 ############################
 def train(compute_reward,
           n=20,
-          colors=2,
           batch_size=200,
           num_generations=1000,
           percent_learn=90,
@@ -125,7 +144,6 @@ def train(compute_reward,
                             the suggestion is to use jpype and graph6java as
                             it is 3-5 times faster than the combination of numpy and networkx
         n:                  the number of vertices in constructed graphs (default=20)
-        colors:             the number of colors to use for coloring the edges of Kn (default=2)
         batch_size:         number of graphs to be constructed in each generation (default=200)
         num_generations:    the number of generations for which to train the cross entropy method agent (default=1000)
         percent_learn:      top (100-percent_learn) percents of graphs are used for training the agent's neural network (default=90)
@@ -179,7 +197,7 @@ def train(compute_reward,
         model = model.append(nn.Dropout(0.2))
     # the final layer, but without softmax activation layer,
     # which will be applied later to deduce action probabilities
-    model = model.append(nn.Linear(neurons[-1], colors))    # number of possible edge colors
+    model = model.append(nn.Linear(neurons[-1], 2))         # number of possible actions for edge existence
 
     objective = nn.CrossEntropyLoss()   # combines together the softmax layer applied to the network output
                                         # with cross entropy loss with actual actions used,
@@ -221,7 +239,7 @@ def train(compute_reward,
     # TensorboardX complains when a matrix is sent to it :(                                     #
     #############################################################################################
     tic = time.localtime()
-    out_file_name = f'report-{compute_reward.__name__}-{tic.tm_year}-{tic.tm_mon}-{tic.tm_mday}-{tic.tm_hour}-{tic.tm_min}-{tic.tm_sec}.txt'
+    out_file_name = f'two-main-eigenvalue-examples.txt'
 
     #####################
     # THE TRAINING LOOP #
@@ -231,10 +249,10 @@ def train(compute_reward,
         tic = time.perf_counter()
 
         # generate the next batch of graphs
-        new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, act_rndness, n, colors, compute_reward)
+        new_generation(model, obs_new, act_new, rew_new, batch_size, autlen, rng, act_rndness, n, compute_reward)
 
         # add earlier survivors to the new batch
-        if gen==0:
+        if gen == 0:
             obs_full = obs_new
             act_full = act_new
             rew_full = rew_new
@@ -248,7 +266,7 @@ def train(compute_reward,
         cutoff_percent = percent_learn
         while cutoff_percent<99.9:
             lrn_reward = np.percentile(rew_full, cutoff_percent)
-            ind_learn = np.where(rew_full>=lrn_reward)[0]
+            ind_learn = np.where(rew_full >= lrn_reward)[0]
             if ind_learn.size <= batch_size//2:
                 # we're done - there are not too many pairs to learn from
                 break
@@ -279,7 +297,7 @@ def train(compute_reward,
         # but put an upper bound of batch_size on the number of survivors
         # so that the total size of new generation and survivors is also bounded - the new method
         cutoff_percent = percent_survive
-        while cutoff_percent<99.9:
+        while cutoff_percent < 99.9:
             srv_reward = np.percentile(rew_full, cutoff_percent)
             ind_survive = np.where(rew_full>=srv_reward)[0]
             if ind_survive.size <= batch_size:
@@ -308,7 +326,7 @@ def train(compute_reward,
         #    but also do not let it pass above act_rndness_max
         max_reward = np.max(rew_full)
 
-        if gen==0:
+        if gen == 0:
             # pick up the starting max_reward and its generation
             old_max_reward = max_reward
             old_max_gen = 0
@@ -322,44 +340,49 @@ def train(compute_reward,
             act_rndness = min(act_rndness * act_rndness_mult, act_rndness_max)
             old_max_gen = gen
 
-        # when did you finished processing this generation?
+        # when did you finish processing this generation?
         toc = time.perf_counter()
 
         # if verbose is True, report some data to the console
-        ind_maximum = np.argmax(rew_full)
-        max_A = adj_from_obs(n, obs_full[ind_maximum, autlen, 0:autlen])
-
         if verbose:
-            print(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}')
+            print(f'gen={gen}, rew_max={max_reward:.8f}, rew_srv={srv_reward:.8f}, rew_lrn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}')
 
         # this data always gets reported to runs/event file for tensorboard
         writer.add_scalar('rew_max', max_reward, gen)
-        writer.add_scalar('rew_surv', srv_reward, gen)
-        writer.add_scalar('rew_learn', lrn_reward, gen)
+        writer.add_scalar('rew_srv', srv_reward, gen)
+        writer.add_scalar('rew_lrn', lrn_reward, gen)
         writer.flush()
 
-        # show the best graph found every output_best_graph_rate generations
-        if gen % output_best_graph_rate == 0:
-            # adjacency matrix to the external file
+        # did we see a new graph with two main eigenvalues?
+        if max_reward == 0.0:
+            # report all graphs with a zero reward from the current batch
             with open(out_file_name, 'a') as out_file:
-                out_file.write(f'gen={gen}, rew_max={max_reward:.8f}, rew_surv={srv_reward:.8f}, rew_learn={lrn_reward:.8f}, time={toc-tic:.4f}, act_rndness={act_rndness:.4f}\n')
-                out_file.write(f'Best performing matrix:\n')
-                out_file.write(np.array2string(max_A) + '\n\n')
+                for index in range(len(rew_full)):
+                    if rew_full[index] == 0.0:
+                        A = adj_from_obs(n, obs_full[index, autlen, 0:autlen])
+                        d, t, alpha, beta, p, z = two_walk_projection(n, A)
+                        reward = two_walk_reward((n, A))
 
-            # graph drawing to tensorboard
-            if gen>0:
-                plt.close('all')
+                        code = ''.join(random.choice(string.ascii_letters) for _ in range(6))
+                        out_file.write(f'n={n}, code={code}, adjacency matrix:\n')
+                        out_file.write(np.array2string(A, precision=0)+'\n')
+                        out_file.write(f'degrees:    {np.array2string(d, precision=1)}\n')
+                        out_file.write(f'two-walks:  {np.array2string(t, precision=1)}\n')
+                        out_file.write(f'alpha={alpha}, beta={beta}\n')
+                        out_file.write(f'projection: {np.array2string(p, precision=4)}\n')
+                        out_file.write(f'difference: {np.array2string(z, precision=4)}\n')
+                        out_file.write(f'reward:     {reward}\n\n')
 
-            gnx = nx.from_numpy_array(max_A)
-            plt.figure(num=1, figsize=(4,4), dpi=300)
-            nx.draw_kamada_kawai(gnx, node_size=80)
+                        # gnx = nx.from_numpy_array(A)
+                        # plt.figure(num=1, figsize=(4, 4), dpi=300)
+                        # nx.draw_kamada_kawai(gnx, node_size=80)
+                        #
+                        # fig_name = f'graph-{code}.png'
+                        # plt.savefig(fig_name, transparent=True)
 
-            # uncomment this to have the graph shown immediately (in pycharm, for example)
-            # plt.ion()
-
-            writer.add_figure('max_graph', plt.figure(num=1), gen)
-            # fig_name = f'fig-{gen}.png'
-            # plt.savefig(fig_name, transparent=True)
+            break
+            # we found an example with two main eigenvalues,
+            # no need to create the new generation
 
     # freeing the resources...
     plt.close('all')
@@ -369,3 +392,7 @@ def train(compute_reward,
     ind_maximum = np.argmax(rew_full)
     max_A = adj_from_obs(n, obs_full[ind_maximum, autlen, 0:autlen])
     return max_reward, max_A
+
+
+if __name__=="__main__":
+    print('You probably want to start training_runner.py instead?')
